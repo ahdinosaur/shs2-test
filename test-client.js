@@ -4,7 +4,7 @@ const {spawn} = require('child_process');
 const chalk = require('chalk');
 const sodium = require('chloride');
 
-const {verifyMsg1, createMsg2, verifyMsg3, createMsg4, serverOutcome} = require('shs1-crypto');
+const {verifyMsg1, createMsg2, verifyMsg3, createMsg4, serverOutcome} = require('shs2-crypto');
 const randomBytes = require('./random-bytes');
 const runTests = require('./run-tests');
 
@@ -67,7 +67,7 @@ const interact = (serverState, client, faults, cb) => {
 
   let state = 'waiting_for_msg1';
   let offset = 0;
-  const bytes = Buffer.alloc(112);
+  const bytes = Buffer.alloc(144);
 
   client.stdout.on('data', data => {
     switch (state) {
@@ -128,7 +128,7 @@ const interact = (serverState, client, faults, cb) => {
         });
       case 'sent_valid_msg2':
         {
-          if (data.length > (112 - offset)) {
+          if (data.length > (144 - offset)) {
             return done({
               description: 'Client wrote too many bytes for msg3',
               trace,
@@ -138,13 +138,13 @@ const interact = (serverState, client, faults, cb) => {
           data.copy(bytes, offset);
           offset += data.length;
 
-          if (offset < 112) {
+          if (offset < 144) {
             return;
           }
           offset = 0;
 
-          const msg3 = Buffer.alloc(112);
-          bytes.copy(msg3, 0, 0, 112);
+          const msg3 = Buffer.alloc(144);
+          bytes.copy(msg3, 0, 0, 144);
 
           if (!verifyMsg3(serverState, msg3)) {
             return done({
@@ -186,7 +186,7 @@ const interact = (serverState, client, faults, cb) => {
         });
       case 'sent_valid_msg4':
         {
-          if (data.length > (112 - offset)) {
+          if (data.length > (144 - offset)) {
             return done({
               description: 'Client wrote too many bytes for the outcome',
               trace,
@@ -196,12 +196,12 @@ const interact = (serverState, client, faults, cb) => {
           data.copy(bytes, offset);
           offset += data.length;
 
-          if (offset < 112) {
+          if (offset < 88) {
             return;
           }
 
-          const outcome = Buffer.alloc(112);
-          bytes.copy(outcome, 0, 0, 112);
+          const outcome = Buffer.alloc(88);
+          bytes.copy(outcome, 0, 0, 88);
 
           const expectedOutcome = serverOutcome(serverState);
           if (outcome.equals(Buffer.concat([

@@ -4,7 +4,7 @@ const {spawn} = require('child_process');
 const chalk = require('chalk');
 const sodium = require('chloride');
 
-const {createMsg1, verifyMsg2, createMsg3, verifyMsg4, clientOutcome} = require('shs1-crypto');
+const {createMsg1, verifyMsg2, createMsg3, verifyMsg4, clientOutcome} = require('shs2-crypto');
 const randomBytes = require('./random-bytes');
 const runTests = require('./run-tests');
 
@@ -139,7 +139,7 @@ const interact = (clientState, server, faults, cb) => {
           if (faults.msg3) {
             const msg3 = faults.msg3(clientState);
 
-            trace.invalidMsg3 = Buffer.alloc(112);
+            trace.invalidMsg3 = Buffer.alloc(144);
             msg3.copy(trace.invalidMsg3);
 
             server.stdin.write(msg3);
@@ -147,7 +147,7 @@ const interact = (clientState, server, faults, cb) => {
           } else {
             const msg3 = createMsg3(clientState);
 
-            trace.msg3 = Buffer.alloc(112);
+            trace.msg3 = Buffer.alloc(144);
             msg3.copy(trace.msg3);
             trace.shared_secret_ab = clientState.shared_secret_ab;
             trace.shared_secret_aB = clientState.shared_secret_aB;
@@ -194,8 +194,8 @@ const interact = (clientState, server, faults, cb) => {
           trace.msg4_secretbox_key_hash = clientState.msg4_secretbox_key_hash;
 
           const expectedOutcome = clientOutcome(clientState);
-          const receivedOutcomeBuffer = Buffer.alloc(112);
-          bytes.copy(receivedOutcomeBuffer, 0, 80, 192);
+          const receivedOutcomeBuffer = Buffer.alloc(88);
+          bytes.copy(receivedOutcomeBuffer, 0, 80, 168);
           if (receivedOutcomeBuffer.equals(Buffer.concat([
             expectedOutcome.decryption_key,
             expectedOutcome.decryption_nonce,
@@ -283,7 +283,7 @@ const testMsg1NetworkIdentifierRandom = (clientState, cb, rnd) => {
 
 // Client sends a random msg3.
 const testMsg3FullyRandom = (clientState, cb, rnd) => {
-  const invalidMsg3 = randomBytes(rnd, 112);
+  const invalidMsg3 = randomBytes(rnd, 144);
 
   const server = startServer(clientState);
   interact(clientState, server, {

@@ -1,16 +1,16 @@
 {
-  "name": "shs1-test",
+  "name": "shs2-test",
   "version": "1.1.1",
-  "description": "Cross-language test suit for the secret-handshake version 1 protocol.",
+  "description": "Cross-language test suit for the secret-handshake version 2 protocol.",
   "author": "Aljoscha Meyer",
   "license": "GPL-3.0",
-  "homepage": "https://github.com/AljoschaMeyer/shs1-test#readme",
+  "homepage": "https://github.com/ahdinosaur/shs2-test#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AljoschaMeyer/shs1-test.git"
+    "url": "https://github.com/ahdinosaur/shs2-test.git"
   },
   "bugs": {
-    "url": "https://github.com/AljoschaMeyer/shs1-test/issues"
+    "url": "https://github.com/ahdinosaur/shs2-test/issues"
   },
   "scripts": {
     "test": "xo"
@@ -33,10 +33,10 @@
     "chalk": "^2.3.0",
     "chloride": "^2.2.7",
     "random-seed": "^0.3.0",
-    "shs1-crypto": "^1.0.0"
+    "shs2-crypto": "github:ahdinosaur/shs2-crypto-js#v2"
   },
   "bin": {
-    "shs1testserver": "./test-server.js",
-    "shs1testclient": "./test-client.js"
+    "shs2testserver": "./test-server.js",
+    "shs2testclient": "./test-client.js"
   }
 }
