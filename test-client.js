@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const sodium = require('chloride');
 
 const {verifyMsg1, createMsg2, verifyMsg3, createMsg4, serverOutcome} = require('shs2-crypto');
+const {crypto_secretbox_easy} = require('shs2-crypto/chloride');
 const randomBytes = require('./random-bytes');
 const runTests = require('./run-tests');
 
@@ -302,23 +303,20 @@ const testMsg4FullyRandom = (serverState, cb, rnd) => {
 const testMsg4SecretboxKeyRandom = (serverState, cb, rnd) => {
   const random_msg4_secretbox_key = randomBytes(rnd, 32);
 
-  const zeros = Buffer.alloc(24);
+  const zeros = Buffer.alloc(12);
   zeros.fill(0);
 
   const client = startClient(serverState);
   interact(serverState, client, {
     msg4: serverState => {
-      const shared_secret_ab_hashed = sodium.crypto_hash_sha256(serverState.shared_secret_ab); // Same as in verifyMsg3().
-
-      // The signature of this is the plaintext for msg4.
       const signed = Buffer.concat([
         serverState.network_identifier,
         serverState.msg3_plaintext,
-        shared_secret_ab_hashed
+        serverState.handshake_id
       ]);
-      const msg4_plaintext = sodium.crypto_sign_detached(signed, serverState.server_longterm_sk);
+      const msg4_plaintext = crypto_sign_detached(signed, serverState.server_longterm_sk);
 
-      return sodium.crypto_secretbox_easy(msg4_plaintext, zeros, random_msg4_secretbox_key);
+      return crypto_secretbox_easy(msg4_plaintext, zeros, random_msg4_secretbox_key);
     }
   }, cb);
 };
@@ -327,13 +325,13 @@ const testMsg4SecretboxKeyRandom = (serverState, cb, rnd) => {
 const testMsg4PlaintextRandom = (serverState, cb, rnd) => {
   const random_msg4_plaintext = randomBytes(rnd, 80);
 
-  const zeros = Buffer.alloc(24);
+  const zeros = Buffer.alloc(12);
   zeros.fill(0);
 
   const client = startClient(serverState);
   interact(serverState, client, {
     msg4: serverState => {
-      return sodium.crypto_secretbox_easy(random_msg4_plaintext, zeros, serverState.msg4_secretbox_key);
+      return crypto_secretbox_easy(random_msg4_plaintext, zeros, serverState.msg4_secretbox_key);
     }
   }, cb);
 };

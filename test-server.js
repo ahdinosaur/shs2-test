@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const sodium = require('chloride');
 
 const {createMsg1, verifyMsg2, createMsg3, verifyMsg4, clientOutcome} = require('shs2-crypto');
+const { crypto_secretbox_easy } = require('shs2-crypto/chloride')
 const randomBytes = require('./random-bytes');
 const runTests = require('./run-tests');
 
@@ -298,25 +299,29 @@ const testMsg3SecretboxKeyRandom = (clientState, cb, rnd) => {
   const server = startServer(clientState);
   interact(clientState, server, {
     msg3: clientState => {
-      const shared_secret_ab = sodium.crypto_scalarmult(clientState.client_ephemeral_sk, clientState.server_ephemeral_pk);
-      const shared_secret_ab_hashed = sodium.crypto_hash_sha256(shared_secret_ab);
+      const zeros = Buffer.alloc(12);
+      zeros.fill(0);
+
+      const handshake_id = crypto_hash_sha256(
+        Buffer.concat([
+          clientState.shared_secret_ab,
+          clientState.client_ephemeral_pk,
+          clientState.server_ephemeral_pk
+        ])
+      );
 
       const signed = Buffer.concat([
         clientState.network_identifier,
         clientState.server_longterm_pk,
-        shared_secret_ab_hashed
+        handshake_id
       ]);
 
-      const inner_signature = sodium.crypto_sign_detached(signed, clientState.client_longterm_sk);
+      const inner_signature = crypto_sign_detached(signed, clientState.client_longterm_sk);
 
-      const msg3_plaintext = Buffer.concat([inner_signature, clientState.client_longterm_pk]);
+      const extra_payload = Buffer.alloc(32, 0);
+      const msg3_plaintext = Buffer.concat([inner_signature, clientState.client_longterm_pk, extra_payload]);
 
-      const msg3_secretbox_key = random_msg3_secretbox_key;
-
-      const zeros = Buffer.alloc(24);
-      zeros.fill(0);
-
-      return sodium.crypto_secretbox_easy(msg3_plaintext, zeros, msg3_secretbox_key);
+      return crypto_secretbox_easy(msg3_plaintext, zeros, random_msg3_secretbox_key);
     }
   }, cb);
 };
@@ -344,7 +349,7 @@ const testMsg3PlaintextRandom = (clientState, cb, rnd) => {
       const zeros = Buffer.alloc(24);
       zeros.fill(0);
 
-      return sodium.crypto_secretbox_easy(random_msg3_plaintext, zeros, msg3_secretbox_key);
+      return crypto_secretbox_easy(random_msg3_plaintext, zeros, msg3_secretbox_key);
     }
   }, cb);
 };
