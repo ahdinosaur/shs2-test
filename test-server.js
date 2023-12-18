@@ -79,7 +79,7 @@ const interact = (clientState, server, faults, cb) => {
 
   let state;
   let offset = 0;
-  const bytes = Buffer.alloc(192);
+  const bytes = Buffer.alloc(168);
 
   if (faults.msg1) {
     const msg1 = faults.msg1(clientState);
@@ -166,7 +166,7 @@ const interact = (clientState, server, faults, cb) => {
         });
       case 'sent_valid_msg3':
         {
-          if (data.length > (192 - offset)) {
+          if (data.length > (168 - offset)) {
             return done({
               description: 'Server wrote too many bytes for msg4 and outcome',
               trace,
@@ -177,7 +177,7 @@ const interact = (clientState, server, faults, cb) => {
           data.copy(bytes, offset);
           offset += data.length;
 
-          if (offset < 192) {
+          if (offset < 168) {
             return;
           }
 
@@ -302,7 +302,7 @@ const testMsg3SecretboxKeyRandom = (clientState, cb, rnd) => {
       const zeros = Buffer.alloc(12);
       zeros.fill(0);
 
-      const handshake_id = crypto_hash_sha256(
+      const handshake_id = sodium.crypto_hash_sha256(
         Buffer.concat([
           clientState.shared_secret_ab,
           clientState.client_ephemeral_pk,
@@ -316,7 +316,7 @@ const testMsg3SecretboxKeyRandom = (clientState, cb, rnd) => {
         handshake_id
       ]);
 
-      const inner_signature = crypto_sign_detached(signed, clientState.client_longterm_sk);
+      const inner_signature = sodium.crypto_sign_detached(signed, clientState.client_longterm_sk);
 
       const extra_payload = Buffer.alloc(32, 0);
       const msg3_plaintext = Buffer.concat([inner_signature, clientState.client_longterm_pk, extra_payload]);
@@ -346,7 +346,7 @@ const testMsg3PlaintextRandom = (clientState, cb, rnd) => {
         shared_secret_aB
       ]));
 
-      const zeros = Buffer.alloc(24);
+      const zeros = Buffer.alloc(12);
       zeros.fill(0);
 
       return crypto_secretbox_easy(random_msg3_plaintext, zeros, msg3_secretbox_key);

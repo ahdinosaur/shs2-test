@@ -187,7 +187,7 @@ const interact = (serverState, client, faults, cb) => {
         });
       case 'sent_valid_msg4':
         {
-          if (data.length > (144 - offset)) {
+          if (data.length > (88 - offset)) {
             return done({
               description: 'Client wrote too many bytes for the outcome',
               trace,
@@ -314,7 +314,7 @@ const testMsg4SecretboxKeyRandom = (serverState, cb, rnd) => {
         serverState.msg3_plaintext,
         serverState.handshake_id
       ]);
-      const msg4_plaintext = crypto_sign_detached(signed, serverState.server_longterm_sk);
+      const msg4_plaintext = sodium.crypto_sign_detached(signed, serverState.server_longterm_sk);
 
       return crypto_secretbox_easy(msg4_plaintext, zeros, random_msg4_secretbox_key);
     }
